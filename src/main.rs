@@ -10,6 +10,7 @@ mod player;
 pub use player::*;
 mod components;
 pub use components::*;
+mod rectangle;
 
 pub struct State {
     ecs: World
@@ -82,7 +83,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Score>();
     gs.ecs.register::<LeftMover>();
     gs.ecs.register::<Player>();
-    gs.ecs.insert(new_map());
+    gs.ecs.insert(new_map_rooms_and_corridors());
 
     gs.ecs.create_entity()
             .with(Position {x:40, y:25})

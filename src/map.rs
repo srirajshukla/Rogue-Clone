@@ -1,5 +1,5 @@
 use rltk::{RGB, Rltk};
-
+use super::rectangle::*;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum TileType {
@@ -55,6 +55,27 @@ pub fn draw_map(map: &[TileType], ctx: &mut Rltk){
         if x > 79 {
             x = 0;
             y += 1;
+        }
+    }
+}
+
+pub fn new_map_rooms_and_corridors() -> Vec<TileType> {
+    let mut map = vec![TileType::Wall; 80*50];
+    
+    let room1 = Rect::new(20, 15, 10, 15);
+    let room2 = Rect::new(35, 15, 10, 15);
+
+    apply_room_to_map(&mut map, &room1);
+    apply_room_to_map(&mut map, &room2);
+
+    map
+}
+
+
+fn apply_room_to_map(map: &mut [TileType], room: &Rect) {
+    for y in room.y1 + 1 ..= room.y2 {
+        for x in room.x1 + 1 ..= room.x2 {
+            map[xy_idx(x, y)] = TileType::Floor;
         }
     }
 }
