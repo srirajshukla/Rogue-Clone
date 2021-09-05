@@ -97,7 +97,8 @@ fn main() -> rltk::BError {
             .with(Player{})
             .with(Viewshed{
                 visible_tiles: Vec::new(),
-                range: 8
+                range: 8,
+                dirty: true,
             })
             .build();
 
