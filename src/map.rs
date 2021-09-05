@@ -1,8 +1,10 @@
 use std::cmp::{max, min};
 
+use crate::{Player, Viewshed};
+
 use super::rectangle::*;
-use rltk::{RandomNumberGenerator, Rltk, RGB};
-use specs::World;
+use rltk::{Algorithm2D, BaseMap, Point, RandomNumberGenerator, Rltk, RGB};
+use specs::prelude::*;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum TileType {
@@ -59,7 +61,7 @@ impl Map {
 
                     if rng.range(0, 2) == 1 {
                         map.apply_horizontal_tunnel(prev_x, new_x, prev_y);
-                        map.apply_vertical_tunnel( prev_y, new_y, new_x);
+                        map.apply_vertical_tunnel(prev_y, new_y, new_x);
                     } else {
                         map.apply_vertical_tunnel(prev_y, new_y, prev_x);
                         map.apply_horizontal_tunnel(prev_x, new_x, new_y);
@@ -69,7 +71,6 @@ impl Map {
                 map.rooms.push(new_room);
             }
         }
-
 
         map
     }
@@ -103,37 +104,56 @@ impl Map {
 }
 
 pub fn draw_map(ecs: &World, ctx: &mut Rltk) {
+    let mut viewsheds = ecs.write_storage::<Viewshed>();
+    let mut players = ecs.write_storage::<Player>();
     let map = ecs.fetch::<Map>();
-    
-    let mut y = 0;
-    let mut x = 0;
 
-    for tile in map.tiles.iter() {
-        match tile {
-            TileType::Floor => {
-                ctx.set(
-                    x,
-                    y,
-                    RGB::from_f32(0.5, 0.5, 0.5),
-                    RGB::from_f32(0., 0., 0.),
-                    rltk::to_cp437('.'),
-                );
+    for (_player, viewshed) in (&mut players, &mut viewsheds).join() {
+        let mut y = 0;
+        let mut x = 0;
+
+        for tile in map.tiles.iter() {
+            let pt = Point::new(x, y);
+            if viewshed.visible_tiles.contains(&pt) {
+                match tile {
+                    TileType::Floor => {
+                        ctx.set(
+                            x,
+                            y,
+                            RGB::from_f32(0.5, 0.5, 0.5),
+                            RGB::from_f32(0., 0., 0.),
+                            rltk::to_cp437('.'),
+                        );
+                    }
+                    TileType::Wall => {
+                        ctx.set(
+                            x,
+                            y,
+                            RGB::from_f32(0.0, 1.0, 0.0),
+                            RGB::from_f32(0., 0., 0.),
+                            rltk::to_cp437('#'),
+                        );
+                    }
+                }
             }
-            TileType::Wall => {
-                ctx.set(
-                    x,
-                    y,
-                    RGB::from_f32(0.0, 1.0, 0.0),
-                    RGB::from_f32(0., 0., 0.),
-                    rltk::to_cp437('#'),
-                );
+
+            x += 1;
+            if x > 79 {
+                x = 0;
+                y += 1;
             }
         }
+    }
+}
 
-        x += 1;
-        if x > 79 {
-            x = 0;
-            y += 1;
-        }
+impl Algorithm2D for Map {
+    fn dimensions(&self) -> rltk::Point {
+        Point::new(self.width, self.height)
+    }
+}
+
+impl BaseMap for Map {
+    fn is_opaque(&self, idx: usize) -> bool {
+        self.tiles[idx as usize] == TileType::Wall
     }
 }
