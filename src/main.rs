@@ -63,7 +63,7 @@ impl State {
 }
 
 #[derive(Component, Debug)]
-struct Player {}
+pub struct Player {}
 
 fn main() -> rltk::BError {
     use rltk::RltkBuilder;
