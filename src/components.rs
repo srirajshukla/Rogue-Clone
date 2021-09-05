@@ -16,10 +16,6 @@ pub struct Renderable {
     pub bg: RGB,
 }
 
-#[derive(Component)]
-pub struct Score{
-    pub score: i32
-}
 
 
 #[derive(Component)]
